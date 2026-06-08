@@ -522,7 +522,9 @@
       const newRow = rows[rows.length - 1];
       if (newRow) {
         newRow.classList.add("just-added");
-        newRow.scrollIntoView({ behavior: "smooth", block: "center" });
+        if (typeof newRow.scrollIntoView === "function") {
+          newRow.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
         const nameField = newRow.querySelector("input.name-input");
         if (nameField) nameField.focus();
       }
