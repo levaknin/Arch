@@ -159,6 +159,14 @@
     background: var(--accent);
     margin-top: 3px;
   }
+  @keyframes flashRow {
+    0%   { background: rgba(56,189,248,0.35); }
+    100% { background: transparent; }
+  }
+  .row.just-added {
+    animation: flashRow 1.1s ease-out;
+    border-radius: 8px;
+  }
   .settings-row {
     display: grid;
     grid-template-columns: 1fr 110px;
@@ -508,10 +516,16 @@
       state[target].push({ name: "", amount: 0 });
       saveState();
       renderSection(target);
-      // focus the new name field
+      // highlight, scroll to, and focus the new row so it's obvious
       const container = document.getElementById(target);
-      const inputs = container.querySelectorAll("input.name-input");
-      if (inputs.length) inputs[inputs.length - 1].focus();
+      const rows = container.querySelectorAll(".row");
+      const newRow = rows[rows.length - 1];
+      if (newRow) {
+        newRow.classList.add("just-added");
+        newRow.scrollIntoView({ behavior: "smooth", block: "center" });
+        const nameField = newRow.querySelector("input.name-input");
+        if (nameField) nameField.focus();
+      }
       recalc();
     });
   });
