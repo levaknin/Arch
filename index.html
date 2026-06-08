@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Aligners Business Cost Calculator</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --panel: #1e293b;
+    --panel-2: #273449;
+    --accent: #38bdf8;
+    --accent-2: #22d3ee;
+    --good: #34d399;
+    --bad: #f87171;
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+    --border: #334155;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: linear-gradient(160deg, #0f172a 0%, #131c30 100%);
+    color: var(--text);
+    line-height: 1.5;
+    padding: 24px;
+  }
+  .wrap { max-width: 1100px; margin: 0 auto; }
+  header {
+    text-align: center;
+    margin-bottom: 28px;
+  }
+  header h1 {
+    margin: 0 0 6px;
+    font-size: 28px;
+    letter-spacing: -0.5px;
+  }
+  header p { margin: 0; color: var(--muted); font-size: 14px; }
+  .grid {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 20px;
+    align-items: start;
+  }
+  @media (max-width: 860px) {
+    .grid { grid-template-columns: 1fr; }
+  }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  .card h2 {
+    margin: 0 0 4px;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card .hint { color: var(--muted); font-size: 12px; margin: 0 0 14px; }
+  .section-tag {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--accent);
+  }
+  .row {
+    display: grid;
+    grid-template-columns: 1fr 140px 34px;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .row label { font-size: 14px; }
+  .row .sub { display: block; font-size: 11px; color: var(--muted); }
+  input[type="text"], input[type="number"] {
+    width: 100%;
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color .15s;
+  }
+  input:focus { border-color: var(--accent); }
+  input::placeholder { color: #64748b; }
+  .row input[type="text"].name-input { font-size: 13px; }
+  button {
+    cursor: pointer;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    transition: transform .05s, opacity .15s;
+  }
+  button:active { transform: scale(0.97); }
+  .del-btn {
+    background: transparent;
+    color: var(--bad);
+    border: 1px solid var(--border);
+    height: 34px;
+    border-radius: 8px;
+    font-size: 16px;
+    line-height: 1;
+  }
+  .del-btn:hover { background: rgba(248,113,113,0.12); }
+  .add-btn {
+    background: var(--panel-2);
+    color: var(--accent);
+    border: 1px dashed var(--border);
+    padding: 8px 14px;
+    margin-top: 6px;
+    width: 100%;
+  }
+  .add-btn:hover { border-color: var(--accent); }
+  .subtotal {
+    display: flex;
+    justify-content: space-between;
+    border-top: 1px solid var(--border);
+    margin-top: 12px;
+    padding-top: 10px;
+    font-size: 14px;
+    color: var(--muted);
+  }
+  .subtotal strong { color: var(--text); }
+
+  /* Results panel */
+  .results { position: sticky; top: 24px; }
+  .result-block {
+    background: var(--panel-2);
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+  }
+  .result-block .lbl { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+  .result-block .val { font-size: 24px; font-weight: 700; margin-top: 2px; }
+  .result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .val.good { color: var(--good); }
+  .val.bad { color: var(--bad); }
+  .breakdown {
+    font-size: 13px;
+    margin-top: 4px;
+  }
+  .breakdown div {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px 0;
+    border-bottom: 1px dashed var(--border);
+  }
+  .breakdown div:last-child { border-bottom: none; }
+  .bar {
+    height: 6px;
+    border-radius: 4px;
+    background: var(--accent);
+    margin-top: 3px;
+  }
+  .settings-row {
+    display: grid;
+    grid-template-columns: 1fr 110px;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  footer { text-align: center; color: var(--muted); font-size: 12px; margin-top: 30px; }
+  .pill {
+    display:inline-block; font-size: 11px; background: var(--panel-2);
+    border:1px solid var(--border); border-radius: 999px; padding: 2px 8px; color: var(--muted);
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>🦷 Aligners Business Cost Calculator</h1>
+    <p>Enter your costs once — see what it adds up to per month and per day.</p>
+  </header>
+
+  <div class="grid">
+    <!-- LEFT: INPUTS -->
+    <div>
+      <!-- Settings -->
+      <div class="card">
+        <h2>⚙️ Settings</h2>
+        <p class="hint">Used to convert totals into daily numbers and per-case figures.</p>
+        <div class="settings-row">
+          <label>Currency symbol</label>
+          <input type="text" id="currency" value="$" />
+        </div>
+        <div class="settings-row">
+          <label>Working days per month</label>
+          <input type="number" id="workingDays" value="30" min="1" max="31" step="1" />
+        </div>
+        <div class="settings-row">
+          <label>Aligner cases produced / month <span class="sub">to get cost per case</span></label>
+          <input type="number" id="casesPerMonth" value="50" min="0" step="1" />
+        </div>
+      </div>
+
+      <!-- Fixed monthly costs -->
+      <div class="card">
+        <span class="section-tag">Fixed / Overhead</span>
+        <h2>🏢 Monthly Fixed Costs</h2>
+        <p class="hint">Costs you pay every month regardless of how many aligners you make.</p>
+        <div id="fixedRows"></div>
+        <button class="add-btn" data-target="fixedRows" data-period="month">+ Add fixed cost</button>
+        <div class="subtotal"><span>Subtotal (fixed)</span><strong id="fixedSubtotal">$0</strong></div>
+      </div>
+
+      <!-- Staff -->
+      <div class="card">
+        <span class="section-tag">Payroll</span>
+        <h2>👥 Employees</h2>
+        <p class="hint">Monthly salary / wage cost per role (include taxes &amp; benefits if you can).</p>
+        <div id="staffRows"></div>
+        <button class="add-btn" data-target="staffRows" data-period="month">+ Add employee / role</button>
+        <div class="subtotal"><span>Subtotal (staff)</span><strong id="staffSubtotal">$0</strong></div>
+      </div>
+
+      <!-- Per-case / variable costs -->
+      <div class="card">
+        <span class="section-tag">Variable</span>
+        <h2>🧪 Materials &amp; Per-Case Costs</h2>
+        <p class="hint">Cost <em>per aligner case</em> — resin, plastic sheets, lab fees, shipping, etc. Multiplied by cases/month.</p>
+        <div id="variableRows"></div>
+        <button class="add-btn" data-target="variableRows" data-period="case">+ Add per-case cost</button>
+        <div class="subtotal"><span>Per-case total</span><strong id="variablePerCase">$0</strong></div>
+        <div class="subtotal"><span>Monthly (× cases)</span><strong id="variableMonthly">$0</strong></div>
+      </div>
+
+      <!-- Revenue (optional) -->
+      <div class="card">
+        <span class="section-tag">Optional</span>
+        <h2>💰 Revenue</h2>
+        <p class="hint">Add your selling price per case to also see profit.</p>
+        <div class="settings-row">
+          <label>Price charged per case</label>
+          <input type="number" id="pricePerCase" value="0" min="0" step="1" />
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: RESULTS -->
+    <div class="results">
+      <div class="card">
+        <h2>📊 Totals</h2>
+        <p class="hint">Updates automatically as you type.</p>
+
+        <div class="result-grid">
+          <div class="result-block">
+            <div class="lbl">Total / Month</div>
+            <div class="val" id="totalMonth">$0</div>
+          </div>
+          <div class="result-block">
+            <div class="lbl">Total / Day</div>
+            <div class="val" id="totalDay">$0</div>
+          </div>
+        </div>
+
+        <div class="result-block" style="margin-top:10px">
+          <div class="lbl">Cost per aligner case</div>
+          <div class="val" id="costPerCase">$0</div>
+        </div>
+
+        <div class="breakdown" style="margin-top:14px">
+          <div><span>Fixed costs</span><span id="bdFixed">$0</span></div>
+          <div id="bdFixedBarWrap"><div class="bar" id="bdFixedBar" style="width:0%"></div></div>
+          <div><span>Staff</span><span id="bdStaff">$0</span></div>
+          <div id="bdStaffBarWrap"><div class="bar" id="bdStaffBar" style="width:0%;background:var(--accent-2)"></div></div>
+          <div><span>Materials (variable)</span><span id="bdVar">$0</span></div>
+          <div id="bdVarBarWrap"><div class="bar" id="bdVarBar" style="width:0%;background:var(--good)"></div></div>
+        </div>
+      </div>
+
+      <div class="card" id="profitCard">
+        <h2>📈 Profit</h2>
+        <div class="result-grid">
+          <div class="result-block">
+            <div class="lbl">Revenue / Month</div>
+            <div class="val" id="revMonth">$0</div>
+          </div>
+          <div class="result-block">
+            <div class="lbl">Profit / Month</div>
+            <div class="val" id="profitMonth">$0</div>
+          </div>
+        </div>
+        <div class="result-grid" style="margin-top:10px">
+          <div class="result-block">
+            <div class="lbl">Profit / Day</div>
+            <div class="val" id="profitDay">$0</div>
+          </div>
+          <div class="result-block">
+            <div class="lbl">Margin</div>
+            <div class="val" id="margin">—</div>
+          </div>
+        </div>
+        <div class="breakdown" style="margin-top:12px">
+          <div><span>Break-even cases / month</span><span id="breakeven">—</span></div>
+          <div><span>Profit per case</span><span id="profitPerCase">—</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <button class="add-btn" id="resetBtn" style="color:var(--bad);border-color:var(--border)">↺ Reset everything</button>
+        <p class="hint" style="margin-top:10px;margin-bottom:0">
+          <span class="pill">Auto-saved in your browser</span>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    Built for planning purposes — figures are estimates. Adjust working days &amp; cases/month to match your real operation.
+  </footer>
+</div>
+
+<script>
+  // ---- Default line items ----------------------------------------------
+  const DEFAULTS = {
+    fixedRows: [
+      { name: "Rent / lease", amount: 2000 },
+      { name: "Utilities (power, water, internet)", amount: 300 },
+      { name: "Software / CAD & treatment planning", amount: 200 },
+      { name: "Insurance", amount: 150 },
+      { name: "Marketing & advertising", amount: 400 },
+      { name: "Equipment lease / loan payment", amount: 0 },
+      { name: "Maintenance & repairs", amount: 0 }
+    ],
+    staffRows: [
+      { name: "Orthodontist / dentist", amount: 0 },
+      { name: "Lab technician", amount: 2500 },
+      { name: "Admin / reception", amount: 1800 }
+    ],
+    variableRows: [
+      { name: "3D printing resin", amount: 8 },
+      { name: "Thermoforming plastic sheets", amount: 5 },
+      { name: "Packaging & cases", amount: 3 },
+      { name: "Shipping per case", amount: 4 },
+      { name: "Lab / outsourcing fee", amount: 0 }
+    ]
+  };
+
+  const STORAGE_KEY = "alignersCalc.v1";
+  let state = loadState();
+
+  function loadState() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch (e) {}
+    return {
+      currency: "$",
+      workingDays: 30,
+      casesPerMonth: 50,
+      pricePerCase: 0,
+      fixedRows: DEFAULTS.fixedRows.map(r => ({ ...r })),
+      staffRows: DEFAULTS.staffRows.map(r => ({ ...r })),
+      variableRows: DEFAULTS.variableRows.map(r => ({ ...r }))
+    };
+  }
+
+  function saveState() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
+  }
+
+  // ---- Rendering rows --------------------------------------------------
+  function buildRow(target, item, idx) {
+    const row = document.createElement("div");
+    row.className = "row";
+
+    const nameWrap = document.createElement("div");
+    const nameInput = document.createElement("input");
+    nameInput.type = "text";
+    nameInput.className = "name-input";
+    nameInput.value = item.name || "";
+    nameInput.placeholder = "Cost name";
+    nameInput.addEventListener("input", () => {
+      state[target][idx].name = nameInput.value;
+      saveState();
+    });
+    nameWrap.appendChild(nameInput);
+
+    const amtInput = document.createElement("input");
+    amtInput.type = "number";
+    amtInput.min = "0";
+    amtInput.step = "any";
+    amtInput.value = item.amount;
+    amtInput.placeholder = "0";
+    amtInput.addEventListener("input", () => {
+      state[target][idx].amount = parseFloat(amtInput.value) || 0;
+      saveState();
+      recalc();
+    });
+
+    const del = document.createElement("button");
+    del.className = "del-btn";
+    del.textContent = "×";
+    del.title = "Remove";
+    del.addEventListener("click", () => {
+      state[target].splice(idx, 1);
+      saveState();
+      renderAll();
+      recalc();
+    });
+
+    row.appendChild(nameWrap);
+    row.appendChild(amtInput);
+    row.appendChild(del);
+    return row;
+  }
+
+  function renderSection(target) {
+    const container = document.getElementById(target);
+    container.innerHTML = "";
+    state[target].forEach((item, idx) => {
+      container.appendChild(buildRow(target, item, idx));
+    });
+  }
+
+  function renderAll() {
+    renderSection("fixedRows");
+    renderSection("staffRows");
+    renderSection("variableRows");
+    document.getElementById("currency").value = state.currency;
+    document.getElementById("workingDays").value = state.workingDays;
+    document.getElementById("casesPerMonth").value = state.casesPerMonth;
+    document.getElementById("pricePerCase").value = state.pricePerCase;
+  }
+
+  // ---- Calculation -----------------------------------------------------
+  function sum(rows) {
+    return rows.reduce((t, r) => t + (parseFloat(r.amount) || 0), 0);
+  }
+
+  function fmt(n) {
+    const cur = state.currency || "";
+    const rounded = Math.round((n + Number.EPSILON) * 100) / 100;
+    return cur + rounded.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+  }
+
+  function recalc() {
+    const days = Math.max(1, parseFloat(state.workingDays) || 1);
+    const cases = Math.max(0, parseFloat(state.casesPerMonth) || 0);
+    const price = parseFloat(state.pricePerCase) || 0;
+
+    const fixed = sum(state.fixedRows);
+    const staff = sum(state.staffRows);
+    const perCase = sum(state.variableRows);
+    const varMonthly = perCase * cases;
+
+    const totalMonth = fixed + staff + varMonthly;
+    const totalDay = totalMonth / days;
+    const costPerCase = cases > 0 ? totalMonth / cases : (perCase);
+
+    // Subtotals
+    document.getElementById("fixedSubtotal").textContent = fmt(fixed);
+    document.getElementById("staffSubtotal").textContent = fmt(staff);
+    document.getElementById("variablePerCase").textContent = fmt(perCase);
+    document.getElementById("variableMonthly").textContent = fmt(varMonthly);
+
+    // Totals
+    document.getElementById("totalMonth").textContent = fmt(totalMonth);
+    document.getElementById("totalDay").textContent = fmt(totalDay);
+    document.getElementById("costPerCase").textContent = fmt(costPerCase);
+
+    // Breakdown bars
+    const maxPart = Math.max(fixed, staff, varMonthly, 1);
+    document.getElementById("bdFixed").textContent = fmt(fixed);
+    document.getElementById("bdStaff").textContent = fmt(staff);
+    document.getElementById("bdVar").textContent = fmt(varMonthly);
+    document.getElementById("bdFixedBar").style.width = (fixed / maxPart * 100) + "%";
+    document.getElementById("bdStaffBar").style.width = (staff / maxPart * 100) + "%";
+    document.getElementById("bdVarBar").style.width = (varMonthly / maxPart * 100) + "%";
+
+    // Profit
+    const revMonth = price * cases;
+    const profitMonth = revMonth - totalMonth;
+    const profitDay = profitMonth / days;
+    const profitPerCase = cases > 0 ? profitMonth / cases : (price - perCase);
+    const margin = revMonth > 0 ? (profitMonth / revMonth * 100) : null;
+    // break-even: cases where revenue = cost  => cases*(price-perCase) = fixed+staff
+    const contribution = price - perCase;
+    const breakeven = contribution > 0 ? Math.ceil((fixed + staff) / contribution) : null;
+
+    document.getElementById("revMonth").textContent = fmt(revMonth);
+    setSigned("profitMonth", profitMonth);
+    setSigned("profitDay", profitDay);
+    document.getElementById("margin").textContent = margin === null ? "—" : (Math.round(margin * 10) / 10) + "%";
+    document.getElementById("margin").className = "val " + (margin === null ? "" : (margin >= 0 ? "good" : "bad"));
+    document.getElementById("breakeven").textContent = breakeven === null ? "— (price ≤ material cost)" : breakeven + " cases";
+    document.getElementById("profitPerCase").textContent = (price > 0 || cases > 0) ? fmt(profitPerCase) : "—";
+  }
+
+  function setSigned(id, value) {
+    const el = document.getElementById(id);
+    el.textContent = (value >= 0 ? "" : "−") + fmt(Math.abs(value));
+    el.className = "val " + (value >= 0 ? "good" : "bad");
+  }
+
+  // ---- Events ----------------------------------------------------------
+  document.querySelectorAll(".add-btn[data-target]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const target = btn.getAttribute("data-target");
+      state[target].push({ name: "", amount: 0 });
+      saveState();
+      renderSection(target);
+      // focus the new name field
+      const container = document.getElementById(target);
+      const inputs = container.querySelectorAll("input.name-input");
+      if (inputs.length) inputs[inputs.length - 1].focus();
+      recalc();
+    });
+  });
+
+  ["currency", "workingDays", "casesPerMonth", "pricePerCase"].forEach(id => {
+    document.getElementById(id).addEventListener("input", (e) => {
+      const v = e.target.value;
+      state[id] = (id === "currency") ? v : (parseFloat(v) || 0);
+      saveState();
+      recalc();
+    });
+  });
+
+  document.getElementById("resetBtn").addEventListener("click", () => {
+    if (confirm("Reset all costs back to defaults? This clears your saved numbers.")) {
+      localStorage.removeItem(STORAGE_KEY);
+      state = loadState();
+      renderAll();
+      recalc();
+    }
+  });
+
+  // ---- Init ------------------------------------------------------------
+  renderAll();
+  recalc();
+</script>
+</body>
+</html>
