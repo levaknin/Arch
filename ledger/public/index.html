@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Partner Ledger</title>
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Partner Ledger</h1>
+      <p>Partner deposits and shop expenses · amounts in Malaysian Ringgit (RM)</p>
+    </div>
+    <div class="who" id="who" hidden>
+      <div><div class="nm" id="who-name"></div><div class="rl" id="who-role"></div></div>
+      <button class="btn sm" type="button" id="logout">Sign out</button>
+    </div>
+  </header>
+
+  <div id="status" class="notice" hidden></div>
+
+  <section class="panel login" id="login" hidden>
+    <h2>Sign in</h2>
+    <form id="login-form" novalidate>
+      <label class="f">Name
+        <select id="login-user" autocomplete="username">
+          <option value="eli">Eli</option>
+          <option value="moshe">Moshe</option>
+          <option value="igor">Igor</option>
+        </select>
+      </label>
+      <label class="f">Password<input type="password" id="login-pass" autocomplete="current-password" required></label>
+      <button class="btn primary" type="submit" id="login-btn">Sign in</button>
+      <span id="login-msg" class="err" role="status"></span>
+    </form>
+  </section>
+
+  <div id="app" hidden>
+    <nav class="tabs" role="tablist">
+      <button role="tab" type="button" id="tab-deposits" data-tab="deposits" aria-selected="true">Deposits<span class="count" id="cnt-deposits"></span></button>
+      <button role="tab" type="button" id="tab-expenses" data-tab="expenses" aria-selected="false">Expenses<span class="count" id="cnt-expenses"></span></button>
+      <button role="tab" type="button" id="tab-summary" data-tab="summary" aria-selected="false">Summary</button>
+    </nav>
+
+    <section class="panel" id="view-deposits" role="tabpanel">
+      <div class="bar">
+        <h2>Partner deposits</h2>
+        <div class="left">
+          <select id="filter-deposits" aria-label="Filter deposits by month"></select>
+          <button class="btn primary" type="button" id="add-deposits" hidden>Add deposit</button>
+        </div>
+      </div>
+      <form class="entry" id="form-deposits" hidden novalidate>
+        <label class="f">Date<input type="date" id="dep-date" required></label>
+        <label class="f">Partner<select id="dep-partner"></select></label>
+        <label class="f" id="dep-other-wrap" hidden>Partner name<input type="text" id="dep-other" maxlength="60"></label>
+        <label class="f">Amount (RM)<input type="text" inputmode="decimal" class="num" id="dep-amount" placeholder="0.00" required></label>
+        <label class="f">Method<select id="dep-method"></select></label>
+        <label class="f">Reference<input type="text" id="dep-ref" maxlength="80" placeholder="Bank ref / receipt no."></label>
+        <label class="f wide">Note<input type="text" id="dep-note" maxlength="300"></label>
+        <div class="actions">
+          <button class="btn primary" type="submit" id="dep-save">Save deposit</button>
+          <button class="btn" type="button" id="dep-cancel">Cancel</button>
+          <span id="dep-msg" role="status"></span>
+        </div>
+      </form>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Date</th><th>Partner</th><th class="amt">Amount</th><th>Method</th><th>Reference</th><th>Note</th><th>Added by</th><th></th></tr></thead>
+          <tbody id="rows-deposits"></tbody>
+          <tfoot id="foot-deposits"></tfoot>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel" id="view-expenses" role="tabpanel" hidden>
+      <div class="bar">
+        <h2>Expenses</h2>
+        <div class="left">
+          <select id="filter-expenses" aria-label="Filter expenses by month"></select>
+          <button class="btn primary" type="button" id="add-expenses" hidden>Add expense</button>
+        </div>
+      </div>
+      <form class="entry" id="form-expenses" hidden novalidate>
+        <label class="f">Date<input type="date" id="exp-date" required></label>
+        <label class="f">Category<select id="exp-category"></select></label>
+        <label class="f">Paid to<input type="text" id="exp-payee" maxlength="80" placeholder="Supplier / landlord"></label>
+        <label class="f">Amount (RM)<input type="text" inputmode="decimal" class="num" id="exp-amount" placeholder="0.00" required></label>
+        <label class="f">Method<select id="exp-method"></select></label>
+        <label class="f">Reference<input type="text" id="exp-ref" maxlength="80" placeholder="Invoice / receipt no."></label>
+        <label class="f wide">Note<input type="text" id="exp-note" maxlength="300"></label>
+        <div class="actions">
+          <button class="btn primary" type="submit" id="exp-save">Save expense</button>
+          <button class="btn" type="button" id="exp-cancel">Cancel</button>
+          <span id="exp-msg" role="status"></span>
+        </div>
+      </form>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Date</th><th>Category</th><th>Paid to</th><th class="amt">Amount</th><th>Method</th><th>Reference</th><th>Note</th><th>Added by</th><th></th></tr></thead>
+          <tbody id="rows-expenses"></tbody>
+          <tfoot id="foot-expenses"></tfoot>
+        </table>
+      </div>
+    </section>
+
+    <section class="stack" id="view-summary" role="tabpanel" hidden>
+      <div class="kpis">
+        <div class="kpi"><div class="k">Total deposited</div><div class="v in" id="k-dep">RM 0.00</div></div>
+        <div class="kpi"><div class="k">Total spent</div><div class="v out" id="k-exp">RM 0.00</div></div>
+        <div class="kpi"><div class="k">Cash balance</div><div class="v" id="k-bal">RM 0.00</div></div>
+      </div>
+      <div class="grid2">
+        <div class="panel">
+          <h2>Deposits by partner</h2>
+          <div class="tablewrap"><table>
+            <thead><tr><th>Partner</th><th class="amt">Deposited</th><th class="amt">Share</th><th class="meter-col"></th></tr></thead>
+            <tbody id="sum-partners"></tbody>
+          </table></div>
+        </div>
+        <div class="panel">
+          <h2>Expenses by category</h2>
+          <div class="tablewrap"><table>
+            <thead><tr><th>Category</th><th class="amt">Spent</th><th class="amt">Share</th><th class="meter-col"></th></tr></thead>
+            <tbody id="sum-categories"></tbody>
+          </table></div>
+        </div>
+      </div>
+      <div class="panel">
+        <h2>By month</h2>
+        <div class="tablewrap"><table>
+          <thead><tr><th>Month</th><th class="amt">Deposits</th><th class="amt">Expenses</th><th class="amt">Net</th><th class="amt">Running balance</th></tr></thead>
+          <tbody id="sum-months"></tbody>
+        </table></div>
+      </div>
+    </section>
+  </div>
+</div>
+<script src="/app.js"></script>
+</body>
+</html>

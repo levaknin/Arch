@@ -1,0 +1,88 @@
+name: Deploy Partner Ledger to Fly.io
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "ledger/**"
+      - ".github/workflows/deploy-ledger.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-ledger
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ledger
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm test
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ledger
+    env:
+      FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+      ELI_PASSWORD: ${{ secrets.ELI_PASSWORD }}
+      MOSHE_PASSWORD: ${{ secrets.MOSHE_PASSWORD }}
+      IGOR_PASSWORD: ${{ secrets.IGOR_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+
+      - name: Check required secrets
+        run: |
+          missing=0
+          for v in FLY_API_TOKEN ELI_PASSWORD MOSHE_PASSWORD IGOR_PASSWORD; do
+            if [ -z "${!v}" ]; then echo "::error::Repository secret $v is not set."; missing=1; fi
+          done
+          for v in ELI_PASSWORD MOSHE_PASSWORD IGOR_PASSWORD; do
+            val="${!v}"
+            if [ -n "$val" ] && [ "${#val}" -lt 12 ]; then
+              echo "::error::$v must be at least 12 characters."; missing=1
+            fi
+          done
+          exit $missing
+
+      - name: Create app and volume if missing
+        run: |
+          set -euo pipefail
+          APP=$(sed -n 's/^app *= *"\(.*\)"/\1/p' fly.toml)
+          echo "APP=$APP" >> "$GITHUB_ENV"
+          if ! flyctl apps list --json | grep -q "\"$APP\""; then
+            flyctl apps create "$APP" --org personal
+          fi
+          if ! flyctl volumes list --app "$APP" --json | grep -q '"ledger_data"'; then
+            flyctl volumes create ledger_data --app "$APP" --region sin --size 1 --yes
+          fi
+
+      - name: Set app secrets
+        run: |
+          set -euo pipefail
+          # Passwords go in through stdin so they never appear in a process list or log.
+          printf 'ELI_PASSWORD=%s\nMOSHE_PASSWORD=%s\nIGOR_PASSWORD=%s\n' \
+            "$ELI_PASSWORD" "$MOSHE_PASSWORD" "$IGOR_PASSWORD" \
+            | flyctl secrets import --app "$APP" --stage
+          # Session signing key: create once, keep across deploys so people stay signed in.
+          if ! flyctl secrets list --app "$APP" --json | grep -q '"SESSION_SECRET"'; then
+            printf 'SESSION_SECRET=%s\n' "$(openssl rand -hex 32)" | flyctl secrets import --app "$APP" --stage
+          fi
+
+      - name: Deploy
+        run: flyctl deploy --app "$APP" --remote-only --ha=false
+
+      - name: Show URL
+        run: echo "Live at https://$APP.fly.dev"

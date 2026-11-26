@@ -1,0 +1,12 @@
+{
+  "name": "partner-ledger",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Partner deposits and expenses ledger with three fixed users and server-side permissions.",
+  "main": "server.js",
+  "engines": { "node": ">=22.13" },
+  "scripts": {
+    "start": "node --disable-warning=ExperimentalWarning server.js",
+    "test": "node --disable-warning=ExperimentalWarning --test test/*.test.js"
+  }
+}
